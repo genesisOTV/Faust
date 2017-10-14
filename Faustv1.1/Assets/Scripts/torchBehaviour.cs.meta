@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 3228147aabd98084da4881c4b3697353
+timeCreated: 1504405256
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - flameTimeBar: {instanceID: 0}
+  - cellarLight: {fileID: 108962223030153192, guid: 597c75a8df6407b478b9664f89360fc5,
+      type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
