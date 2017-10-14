@@ -29,7 +29,7 @@ public class questManager : MonoBehaviour {
 		StartCoroutine (distributeQ ());
 
 		//**TEMPORARY TESTER**
-		runQPack_Mn (true, 1);
+		//runQPack_Mn (true, 1);
 	}
 	private IEnumerator compileQList(){
 		qStore = new List<IqBase> ();

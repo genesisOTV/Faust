@@ -81,10 +81,7 @@ public class questPackageI : MonoBehaviour, IqBase{
 		ftTimer = GameObject.FindGameObjectWithTag ("ftTimer");
 		ftTimer.SetActive (false);
 
-		brawlersRef = GameObject.FindGameObjectWithTag ("Brawlers");
-		Brawlers = brawlersRef.GetComponentsInChildren<brawlTagger> ();
 		PvERef = Player.GetComponent<PlayerCombat> ();
-		BrawlerBoss = GameObject.FindGameObjectWithTag ("Boss");
 
 		qStatus = Player.GetComponent<playerStatusLog> ();
 		qStatus.qPhaseSet (stgRef);
@@ -665,7 +662,8 @@ public class questPackageI : MonoBehaviour, IqBase{
 					OrationIV_a = dialogueRef_NPC [branchPath + "a"];
 					OrationIV_b = dialogueRef_NPC [branchPath + "b"];
 					OrationIV = new string[]{ OrationIV_a, OrationIV_b };
-					contOptions = new string[]{ "Holder", "Holder" };
+					//CHANGE THIS SHIT
+					contOptions = new string[]{ "CHANGE", "CHANGE" };
 				} else if (qBranchIII == 1) {
 					OrationIV = new string[]{ dialogueRef_NPC [branchPath] };
 					contOptions = new string[]{ "Leave" };
@@ -721,6 +719,12 @@ public class questPackageI : MonoBehaviour, IqBase{
 	public void updateObjReachedI(){
 		reachedObjectiveI = true;
 		Debug.Log ("Bool set");
+	}
+	//Called to assign brawler references (post-cellar)
+	public void assignBrawlers(){
+		brawlersRef = GameObject.FindGameObjectWithTag ("Brawlers");
+		Brawlers = brawlersRef.GetComponentsInChildren<brawlTagger> ();
+		BrawlerBoss = GameObject.FindGameObjectWithTag ("Boss");
 	}
 	public void newBrawler(){
 		//Spawning new Brawlers
@@ -780,8 +784,8 @@ public class questPackageI : MonoBehaviour, IqBase{
 					Debug.Log ("Returned to Start");
 					if (wasSuccessful) {
 						qStatus.onQuest = 0;
-						//Broadcast to inactivate MnQPack runner
-						Messenger<bool, int>.Broadcast ("MnPackAssignment", false, 0);
+						//Broadcast to activate MnLoadout1
+						Messenger<bool, int>.Broadcast ("MnPackAssignment", true, 1);
 					}
 				}
 			}));
@@ -804,6 +808,7 @@ public class questPackageI : MonoBehaviour, IqBase{
 		Debug.Log ("Bar fight initiated");
 		if (firstIteration) {
 			Debug.Log ("First Brawler deployed");
+			assignBrawlers ();
 			brawlerIndex = -1;
 			newBrawler ();
 
@@ -886,6 +891,8 @@ public class questPackageI : MonoBehaviour, IqBase{
 
 		Debug.Log ("Quest Completed; Left the cellar");
 		qStatus.qPhase [2] = 2;
+
+		yield return new WaitForSeconds (2.0f);
 	
 		Accomplished (true);
 		yield break;

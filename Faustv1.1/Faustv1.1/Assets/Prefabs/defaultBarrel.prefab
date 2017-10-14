@@ -138,9 +138,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1de885e60e1367b4889edad276693321, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isInteractable: 1
   barrel_Projectile: {fileID: 1363819421927560, guid: abc6081f2c84bda4b8f12353e53f6bb8,
     type: 2}
+  isInteractable: 1
   Mass: {fileID: 61619240403592918}
 --- !u!212 &212155710105522614
 SpriteRenderer:
