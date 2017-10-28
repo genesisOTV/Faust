@@ -71,11 +71,7 @@ public class questPackageI : MonoBehaviour, IqBase{
 		movementRef = Player.GetComponent<PlayerController> ();
 		Prompter = GameObject.FindGameObjectWithTag ("tBox");
 
-		prmptCanvas = GameObject.FindGameObjectWithTag ("promptCanvas");
-		pDCanvas = prmptCanvas.GetComponentInChildren<Canvas> ();
-		prmptDisplay = pDCanvas.GetComponentInChildren<Image> ();
-		pDText = prmptDisplay.GetComponentsInChildren<Text> () [0];
-		pDCanvas.gameObject.SetActive (false);
+		assignPrmptCanvas ();
 
 		cellarLight = Player.GetComponentInChildren<LightsScript> ();
 		ftTimer = GameObject.FindGameObjectWithTag ("ftTimer");
@@ -660,14 +656,19 @@ public class questPackageI : MonoBehaviour, IqBase{
 				if (qBranchIII == 0) {
 					//CONTINUATION
 					OrationIV_a = dialogueRef_NPC [branchPath + "a"];
+					//CORRECT CORRESPONDING STRING IN JSON ARRAY
 					OrationIV_b = dialogueRef_NPC [branchPath + "b"];
 					OrationIV = new string[]{ OrationIV_a, OrationIV_b };
-					//CHANGE THIS SHIT
-					contOptions = new string[]{ "CHANGE", "CHANGE" };
-				} else if (qBranchIII == 1) {
-					OrationIV = new string[]{ dialogueRef_NPC [branchPath] };
 					contOptions = new string[]{ "Leave" };
 					qComplete = true;
+				} else if (qBranchIII == 1) {
+					//RECONFIGURE AND ADD CORRESPONDING STRINGS
+					OrationIV_a = dialogueRef_NPC [branchPath + "a"];
+					OrationIV_b = dialogueRef_NPC [branchPath + "b"];
+					OrationIV = new string[]{ OrationIV_a, OrationIV_b };
+					contOptions = new string[]{ "Leave" };
+					//ADD RESTART HERE
+					Debug.Log ("Quest failed; prompting restart option.");
 				}
 			}
 		}
@@ -719,6 +720,14 @@ public class questPackageI : MonoBehaviour, IqBase{
 	public void updateObjReachedI(){
 		reachedObjectiveI = true;
 		Debug.Log ("Bool set");
+	}
+	//Called to assign prompt canvas components
+	public void assignPrmptCanvas(){
+		prmptCanvas = GameObject.FindGameObjectWithTag ("promptCanvas");
+		pDCanvas = prmptCanvas.GetComponentInChildren<Canvas> ();
+		prmptDisplay = pDCanvas.GetComponentInChildren<Image> ();
+		pDText = prmptDisplay.GetComponentsInChildren<Text> () [0];
+		pDCanvas.gameObject.SetActive (false);
 	}
 	//Called to assign brawler references (post-cellar)
 	public void assignBrawlers(){
@@ -880,11 +889,19 @@ public class questPackageI : MonoBehaviour, IqBase{
 		//Deactivates blackout screen
 		//ftTimer.SetActive(false);
 		cellarLight.areLightsOn = false;
+		//Dropping held items:
+		//Dropping carried barrel
 		GameObject qObjective = movementRef.carriedObject;
 		Sprite[] objOrientation = movementRef.ObjSprites;
 		qObjective.GetComponent<SpriteRenderer> ().sprite = objOrientation [2];
 		qObjective.transform.position = new Vector3 (5, 1, 0);
+		qObjective.transform.parent = null;
 		movementRef.isCarryingObj = false;
+		//Dropping held torch
+		GameObject torchRef = movementRef.Torch.gameObject;
+		torchRef.transform.position = new Vector3 (5, 2, 0);
+		torchRef.transform.parent = null;
+		movementRef.isCarryingTorch = false;
 
 		barrelBehaviour brlComponent = qObjective.AddComponent<barrelBehaviour> ();
 		brlComponent.isInteractable = true;
