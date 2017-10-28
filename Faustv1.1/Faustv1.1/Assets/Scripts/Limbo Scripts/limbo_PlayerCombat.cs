@@ -16,7 +16,7 @@ public class limbo_PlayerCombat : MonoBehaviour
 
     void Start()
     {
-        FindObjectOfType<EnemyCombat>().EnemyAttacked += HandleEnemyAttacked; 
+        //FindObjectOfType<EnemyCombat>().EnemyAttacked += HandleEnemyAttacked; 
         Physics2D.queriesStartInColliders = false; 
     }
 

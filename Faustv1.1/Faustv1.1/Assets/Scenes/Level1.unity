@@ -2310,7 +2310,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   qCompleted: 0
-  fileName: 
 --- !u!61 &558869688
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -3178,7 +3177,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   qCompleted: 0
-  fileName: 
 --- !u!61 &916078250
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -4862,7 +4860,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   qCompleted: 0
-  fileName: 
 --- !u!61 &1407290586
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -5467,7 +5464,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   qCompleted: 0
-  fileName: 
 --- !u!61 &1601672171
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -6205,7 +6201,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1949543082
 Transform:
   m_ObjectHideFlags: 0

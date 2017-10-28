@@ -4,21 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 
-public class questAI : MonoBehaviour, IDialogue {
+public class questAI : MonoBehaviour {
 	public IqBase AI_qLoader;
 	public bool qCompleted;
-
-    string jsonString;
-    string path;
-    public string fileName;
-
-    public Dialogue ReadDialogue()
-    {
-        path = Application.streamingAssetsPath + "/" + fileName + ".json";
-        jsonString = File.ReadAllText(path);
-        Dialogue dialogue = JsonUtility.FromJson<Dialogue>(jsonString);
-        return dialogue;
-    }
 
 	void OnTriggerStay2D(Collider2D Player){
 		if (Player.CompareTag ("User")) {

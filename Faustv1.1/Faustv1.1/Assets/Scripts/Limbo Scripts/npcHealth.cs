@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿/*
+ * **INACTIVE SCRIPT**
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -21,3 +23,4 @@ public class npcHealth : MonoBehaviour {
 		}
 	}
 }
+*/
