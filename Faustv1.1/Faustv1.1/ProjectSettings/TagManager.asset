@@ -25,6 +25,7 @@ TagManager:
   - Brawlers
   - Boss
   - promptCanvas
+  - GameOverCanvas
   layers:
   - Default
   - TransparentFX

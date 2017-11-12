@@ -29,6 +29,7 @@ public class lyricsEntryHandler : MonoBehaviour {
 	//[PROGRAMMER] nQ's Script [PROGRAMMER] Start
 	public void initiateLE(int LELoadKey){
 		Debug.Log (LELoadKey);
+		Debug.Log ("Inhibiting movement");
 		Messenger<bool>.Broadcast ("canMove_Update", false);
 
 		LELoad = LELoads [LELoadKey];

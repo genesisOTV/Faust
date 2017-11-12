@@ -8,7 +8,8 @@ public delegate void BlockHandler(object sender, CombatEventArgs e);
 
 public class PlayerCombat : MonoBehaviour
 {
-	//Weapon dependent variables (modifiers)
+	public bool enableCombat;
+
 	public float damageValue;
 	public float BlkRecoil;
 	public float blockLimit;
@@ -70,95 +71,96 @@ public class PlayerCombat : MonoBehaviour
     // Check if the player hit an enemy and give damage accordingly every frame 
     void Update()
     {
-		if (DmgReceiver_UsrSide != null) {
-			if (Input.GetMouseButtonDown (0) && !isBlocking && !directionRef.isCarryingObj) {
-				Vector3 direction = mainCamera.ScreenToWorldPoint(Input.mousePosition) - transform.position;
-				hitInfo = Physics2D.Raycast (transform.position, direction, 1);
-				if (hitInfo.collider != null) {
-					GameObject objectHit = hitInfo.collider.gameObject;
-					if (objectHit.GetComponent<npcCombat> () != null) {
-						Debug.Log ("Attacked NPC");
-						holdingTorch = directionRef.isCarryingTorch;
-						DmgReceiver_UsrSide (this, new CombatEventArgs (damageValue, Vector3.zero, 0, holdingTorch, flameDamage));
+		if (enableCombat) {
+			if (DmgReceiver_UsrSide != null) {
+				if (Input.GetMouseButtonDown (0) && !isBlocking && !directionRef.isCarryingObj) {
+					Vector3 direction = mainCamera.ScreenToWorldPoint(Input.mousePosition) - transform.position;
+					hitInfo = Physics2D.Raycast (transform.position, direction, 1);
+					if (hitInfo.collider != null) {
+						GameObject objectHit = hitInfo.collider.gameObject;
+						if (objectHit.GetComponent<npcCombat> () != null) {
+							Debug.Log ("Attacked NPC");
+							holdingTorch = directionRef.isCarryingTorch;
+							DmgReceiver_UsrSide (this, new CombatEventArgs (damageValue, Vector3.zero, 0, holdingTorch, flameDamage));
+						}
+					}
+					//Evaluating most appropriate turn state of player
+					Vector3 dirEstimate_x = new Vector3 (Mathf.Sign (direction.x), 0, 0);
+					Vector3 dirEstimate_y = new Vector3 (0, Mathf.Sign (direction.y), 0);
+					float ang1 = Vector3.Angle (direction, dirEstimate_x);
+					float ang2 = Vector3.Angle (direction, dirEstimate_y);
+					Vector3 newDirection = new Vector3 ();
+					if (ang1 <= ang2) {
+						newDirection = dirEstimate_x;
+					} else if (ang2 < ang1) {
+						newDirection = dirEstimate_y;
+					}
+					anim.SetFloat ("MoveX", newDirection.x);
+					anim.SetFloat ("MoveY", newDirection.y);
+				}
+			}
+
+			//Blocking functionality
+			if (canBlock) {
+				if (Input.GetKey (KeyCode.Q)) {
+					//Ran once
+					if (!isBlocking) {
+						isBlocking = true;
+						blockDuration = 0;
+						Debug.Log("Now blocking");
+						Messenger<bool>.Broadcast ("canMove_Update", false);
+					}
+					blockDuration += Time.deltaTime;
+				} else if (!Input.GetKey (KeyCode.Q)) {
+					//Ran once
+					if (isBlocking) {
+						isBlocking = false;
+						Debug.Log ("Released block");
+						Messenger<bool>.Broadcast ("canMove_Update", true);
+					}
+					//Voluntary block release
+					if (blockDuration > 0) {
+						blockDuration -= Time.deltaTime * 2;
 					}
 				}
-				//Evaluating most appropriate turn state of player
-				Vector3 dirEstimate_x = new Vector3 (Mathf.Sign (direction.x), 0, 0);
-				Vector3 dirEstimate_y = new Vector3 (0, Mathf.Sign (direction.y), 0);
-				float ang1 = Vector3.Angle (direction, dirEstimate_x);
-				float ang2 = Vector3.Angle (direction, dirEstimate_y);
-				Vector3 newDirection = new Vector3 ();
-				if (ang1 <= ang2) {
-					newDirection = dirEstimate_x;
-				} else if (ang2 < ang1) {
-					newDirection = dirEstimate_y;
-				}
-				anim.SetFloat ("MoveX", newDirection.x);
-				anim.SetFloat ("MoveY", newDirection.y);
-			}
-		}
-
-		//Blocking functionality
-		if (canBlock) {
-			if (Input.GetKey (KeyCode.Q)) {
-				//Ran once
-				if (!isBlocking) {
-					isBlocking = true;
-					blockDuration = 0;
-					Debug.Log("Now blocking");
-					Messenger<bool>.Broadcast ("canMove_Update", false);
-				}
-				blockDuration += Time.deltaTime;
-			} else if (!Input.GetKey (KeyCode.Q)) {
-				//Ran once
-				if (isBlocking) {
-					isBlocking = false;
-					Debug.Log ("Released block");
+				//Forces block cooldown if blockDuration exceeds certain time
+				if (blockDuration >= blockLimit) {
 					Messenger<bool>.Broadcast ("canMove_Update", true);
+					canBlock = false;
+					isBlocking = false;
+					blockCooldown = blockLimit / 2;
+					Debug.Log ("Forced block cooldown; reached block limit");
 				}
-				//Voluntary block release
-				if (blockDuration > 0) {
-					blockDuration -= Time.deltaTime * 2;
+			} else {
+				blockCooldown -= Time.deltaTime;
+				if (blockCooldown <= 0) {
+					canBlock = true;
+					Debug.Log ("Forced block cooldown expired");
 				}
 			}
-			//Forces block cooldown if blockDuration exceeds certain time
-			if (blockDuration >= blockLimit) {
-				Messenger<bool>.Broadcast ("canMove_Update", true);
-				canBlock = false;
-				isBlocking = false;
-				blockCooldown = blockLimit / 2;
-				Debug.Log ("Forced block cooldown; reached block limit");
-			}
-		} else {
-			blockCooldown -= Time.deltaTime;
-			if (blockCooldown <= 0) {
-				canBlock = true;
-				Debug.Log ("Forced block cooldown expired");
-			}
-		}
 
-		//Regen functionality
-		if (varHealth < setHealth && !suspendRegen) {
-			regenTime += Time.deltaTime;
-			if (regenTime >= regenRate) {
-				float detractedHealth = setHealth - varHealth;
-				if (detractedHealth >= regenAmt) {
-					varHealth += regenAmt;
-				} else {
-					varHealth += detractedHealth;
+			//Regen functionality
+			if (varHealth < setHealth && !suspendRegen) {
+				regenTime += Time.deltaTime;
+				if (regenTime >= regenRate) {
+					float detractedHealth = setHealth - varHealth;
+					if (detractedHealth >= regenAmt) {
+						varHealth += regenAmt;
+					} else {
+						varHealth += detractedHealth;
+					}
+					regenTime = 0;
 				}
-				regenTime = 0;
+			}
+			//Health controller
+			if (varHealth <= 0) {
+				suspendRegen = true;
+				if (!dealKnockback) {
+					//DO SOMETHING
+					StartCoroutine(KORoutine());
+				}
 			}
 		}
-		//Health controller
-		if (varHealth <= 0) {
-			suspendRegen = true;
-			if (!dealKnockback) {
-				//DO SOMETHING
-				StartCoroutine(KORoutine());
-			}
-		}
-
     }
 
     public void HandleEnemyAttack(object sender, CombatEventArgs e)

@@ -5,6 +5,11 @@ using UnityEngine.SceneManagement;
 
 public class GameOverUI : MonoBehaviour
 {
+	public void promptRestart(){
+		//Called by questPackages upon game over sequence.
+		gameObject.SetActive (true);
+	}
+
     public void Quit()
     {
         Debug.Log("APPLICATION QUIT");

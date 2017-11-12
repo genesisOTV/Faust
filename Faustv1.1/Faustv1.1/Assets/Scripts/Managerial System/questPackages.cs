@@ -39,6 +39,9 @@ public class questPackageI : MonoBehaviour, IqBase{
 	private Image prmptDisplay;
 	private Text pDText;
 
+	private GameObject GO_UI;
+	private Canvas GOCanvas;
+
 	//REFORMAT
 	private LightsScript cellarLight;
 	private bool inputReceived;
@@ -72,6 +75,10 @@ public class questPackageI : MonoBehaviour, IqBase{
 		Prompter = GameObject.FindGameObjectWithTag ("tBox");
 
 		assignPrmptCanvas ();
+
+		GO_UI = GameObject.FindGameObjectWithTag ("GameOverCanvas");
+		GOCanvas = GO_UI.GetComponentInChildren<Canvas> ();
+		GOCanvas.gameObject.SetActive (false);
 
 		cellarLight = Player.GetComponentInChildren<LightsScript> ();
 		ftTimer = GameObject.FindGameObjectWithTag ("ftTimer");
@@ -128,8 +135,11 @@ public class questPackageI : MonoBehaviour, IqBase{
 							if (success_stgI) {
 								Debug.Log ("Quest1 Successfully Completed");
 								qStatus.onQuest = 0;
-								Messenger<int>.RemoveListener ("contBtnRtrn", compileDecision);
+							} else{
+								Debug.Log("Quest1 failed; Restarting level");
+								GOCanvas.GetComponent<GameOverUI>().promptRestart();
 							}
+							Messenger<int>.RemoveListener ("contBtnRtrn", compileDecision);
 						}
 					}));
 				}
@@ -150,9 +160,12 @@ public class questPackageI : MonoBehaviour, IqBase{
 							if (success_stgII) {
 								Debug.Log ("Quest2 Successfully Completed");
 								qStatus.onQuest = 0;
-								Messenger<int>.RemoveListener ("contBtnRtrn", compileDecision);
-								Messenger<bool>.RemoveListener ("LERtrn", LEGate);
+							} else {
+								Debug.Log("Quest2 failed; prompting restart screen");
+								GOCanvas.GetComponent<GameOverUI>().promptRestart();
 							}
+							Messenger<int>.RemoveListener ("contBtnRtrn", compileDecision);
+							Messenger<bool>.RemoveListener ("LERtrn", LEGate);
 						}
 					}));
 				}
@@ -294,6 +307,7 @@ public class questPackageI : MonoBehaviour, IqBase{
 		int qBranchIV = -1;
 		int qBranchV = -1;
 		int qBranchVI = -1;
+		bool qFailed = false;
 		int chantKeyHolder = -1;
 		int chantKey = 0;
 		//Set qPhase to 1 to denote quest initiation
@@ -374,7 +388,7 @@ public class questPackageI : MonoBehaviour, IqBase{
 			qStatus.qPhase [1] = 2;
 
 			//Return to start:
-			Accomplished (true);
+			Accomplished (false);
 			yield break;
 		}
 		branchPath = branchPath + qBranchIII.ToString ();
@@ -436,7 +450,7 @@ public class questPackageI : MonoBehaviour, IqBase{
 			qStatus.qPhase [1] = 2;
 
 			//Return to start:
-			Accomplished (true);
+			Accomplished (false);
 			yield break;
 		}
 
@@ -458,6 +472,7 @@ public class questPackageI : MonoBehaviour, IqBase{
 				rdTypeIII = -1;
 				rspnsTypeV = 2;
 				chantKey = 2;
+				//ADD ORATION ASSIGNMENT
 			}
 		} else if (qBranchI == 1) {
 			rspnsTypeV = 1;
@@ -465,6 +480,7 @@ public class questPackageI : MonoBehaviour, IqBase{
 			if (qBranchIV == 0) {
 				//PATH ROUTE: 1000
 				//Quest failed
+				qFailed = true;
 				contOptions = new string[]{ "Leave" };
 			} else if (qBranchIV == 1) {
 				//PATH ROUTE: 1001
@@ -481,12 +497,21 @@ public class questPackageI : MonoBehaviour, IqBase{
 		qBranchV = inputReturn;
 		Debug.Log (qBranchV);
 		if (qBranchV == 2) {
-			Debug.Log ("Quest Complete");
-			dlgInterface.EndDialogue ();
-			qStatus.qPhase [1] = 2;
+			if (!qFailed) {
+				Debug.Log ("Quest Complete");
+				dlgInterface.EndDialogue ();
+				qStatus.qPhase [1] = 2;
 
-			Accomplished (true);
-			yield break;
+				Accomplished (true);
+				yield break;
+			} else {
+				Debug.Log ("Quest Failed");
+				dlgInterface.EndDialogue ();
+				qStatus.qPhase [1] = 2;
+
+				Accomplished (false);
+				yield break;
+			}
 		} else if (qBranchV == 0) {
 			//Quest failed
 			Debug.Log ("Failed LE; Quest failed");
@@ -555,6 +580,7 @@ public class questPackageI : MonoBehaviour, IqBase{
 		int qBranchIV = -1;
 		int chantKeyHolder = -1;
 		bool qComplete = false;
+		bool qFailed = false;
 		//Set qPhase to 1 to denote quest initiation
 		qStatus.qPhase[0] = 1;
 
@@ -651,7 +677,7 @@ public class questPackageI : MonoBehaviour, IqBase{
 				OrationIV_b = dialogueRef_NPC [branchPath + "b"];
 				OrationIV = new string[]{ OrationIV_a, OrationIV_b };
 				contOptions = new string[]{ "Leave" };
-				qComplete = true;
+				qFailed = true;
 			} else if (qBranchII == 1) {
 				if (qBranchIII == 0) {
 					//CONTINUATION
@@ -667,15 +693,12 @@ public class questPackageI : MonoBehaviour, IqBase{
 					OrationIV_b = dialogueRef_NPC [branchPath + "b"];
 					OrationIV = new string[]{ OrationIV_a, OrationIV_b };
 					contOptions = new string[]{ "Leave" };
-					//ADD RESTART HERE
+					qFailed = true;
 					Debug.Log ("Quest failed; prompting restart option.");
 				}
 			}
 		}
-		//Tester
-		if (qComplete) {
-			Debug.Log ("Quest successful");
-		}
+
 		dlgInterface.outputDialogue (NPCname, 1, OrationIV, contOptions, chantKeyHolder);
 
 		inputReceived = false;
@@ -683,12 +706,21 @@ public class questPackageI : MonoBehaviour, IqBase{
 
 		qBranchIV = inputReturn;
 		if (qBranchIV == 2) {
-			Debug.Log ("Quest Complete");
-			dlgInterface.EndDialogue ();
-			qStatus.qPhase [0] = 2;
+			if (!qFailed) {
+				Debug.Log ("Quest Complete");
+				dlgInterface.EndDialogue ();
+				qStatus.qPhase [0] = 2;
 
-			Accomplished (true);
-			yield break;
+				Accomplished (true);
+				yield break;
+			} else {
+				Debug.Log ("Quest Failed");
+				dlgInterface.EndDialogue ();
+				qStatus.qPhase [0] = 2;
+
+				Accomplished (false);
+				yield break;
+			}
 		} else {
 			Debug.Log ("Continuing");
 		}
@@ -815,6 +847,7 @@ public class questPackageI : MonoBehaviour, IqBase{
 	//[PROGRAMMER] nQ's Script [PROGRAMMER] Start
 	private IEnumerator secondMnQ(Action<bool> Accomplished){
 		Debug.Log ("Bar fight initiated");
+		PvERef.enableCombat = true;
 		if (firstIteration) {
 			Debug.Log ("First Brawler deployed");
 			assignBrawlers ();
@@ -891,12 +924,12 @@ public class questPackageI : MonoBehaviour, IqBase{
 		cellarLight.areLightsOn = false;
 		//Dropping held items:
 		//Dropping carried barrel
-		GameObject qObjective = movementRef.carriedObject;
-		Sprite[] objOrientation = movementRef.ObjSprites;
-		qObjective.GetComponent<SpriteRenderer> ().sprite = objOrientation [2];
-		qObjective.transform.position = new Vector3 (5, 1, 0);
-		qObjective.transform.parent = null;
 		movementRef.isCarryingObj = false;
+		GameObject qObjective = movementRef.carriedObject;
+		Destroy (qObjective);
+		GameObject NonobjectiveBrl = Resources.Load ("Prefabs/defaultBarrel", typeof(GameObject)) as GameObject;
+		Vector3 loadPos = new Vector3 (5, 1, 0);
+		GameObject NonObjBrlRef = Instantiate (NonobjectiveBrl, loadPos, Quaternion.identity);
 		//Dropping held torch
 		GameObject torchRef = movementRef.Torch.gameObject;
 		torchRef.transform.position = new Vector3 (5, 2, 0);
